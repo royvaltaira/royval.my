@@ -103,6 +103,7 @@
                                 <option value="Recipes to Try">🍳 Recipes to Try</option>
                                 <option value="Funny/Memes">😂 Funny/Memes</option>
                                 <option value="Life Goals">🎯 Life Goals</option>
+                                <option value="Baju Raya">👗 Baju Raya</option>
                             </select>
                         </div>
 
@@ -140,6 +141,7 @@
                         <button data-filter="Recipes to Try" class="filter-btn bg-white text-gray-600 hover:bg-brand-50 px-4 py-1.5 rounded-full text-sm font-medium border border-gray-200 transition-colors shadow-sm">Recipes to Try</button>
                         <button data-filter="Funny/Memes" class="filter-btn bg-white text-gray-600 hover:bg-brand-50 px-4 py-1.5 rounded-full text-sm font-medium border border-gray-200 transition-colors shadow-sm">Funny/Memes</button>
                         <button data-filter="Life Goals" class="filter-btn bg-white text-gray-600 hover:bg-brand-50 px-4 py-1.5 rounded-full text-sm font-medium border border-gray-200 transition-colors shadow-sm">Life Goals</button>
+                        <button data-filter="Baju Raya" class="filter-btn bg-white text-gray-600 hover:bg-brand-50 px-4 py-1.5 rounded-full text-sm font-medium border border-gray-200 transition-colors shadow-sm">Baju Raya</button>
                     </div>
                 </div>
 
@@ -250,7 +252,8 @@
                 'Wishlist': 'bg-purple-100 text-purple-800 border-purple-200',
                 'Recipes to Try': 'bg-yellow-100 text-yellow-800 border-yellow-200',
                 'Funny/Memes': 'bg-indigo-100 text-indigo-800 border-indigo-200',
-                'Life Goals': 'bg-green-100 text-green-800 border-green-200'
+                'Life Goals': 'bg-green-100 text-green-800 border-green-200',
+                'Baju Raya': 'bg-cyan-100 text-cyan-800 border-cyan-200'
             };
             const style = styles[category] || 'bg-gray-100 text-gray-800 border-gray-200';
             return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${style}">${category}</span>`;

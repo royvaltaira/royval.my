@@ -172,9 +172,17 @@
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Environment Variables
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-links-app';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const appId = 'sk-planner';
+        const firebaseConfig = {
+  apiKey: "AIzaSyBitkO-wIjEkzSk61vhRiE9wov6MWEj2FY",
+  authDomain: "lhdn-receipt.firebaseapp.com",
+  projectId: "lhdn-receipt",
+  storageBucket: "lhdn-receipt.firebasestorage.app",
+  messagingSenderId: "507279683835",
+  appId: "1:507279683835:web:fc7c3595c7679aeb60c05e"
+};
+        };
+        const initialToken = null;
 
         // Initialize Firebase
         let app, db, auth;

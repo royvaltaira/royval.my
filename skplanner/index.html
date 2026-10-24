@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SK Planner</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -66,13 +68,17 @@
                         <p class="text-sm text-brand-100 mt-1">Our shared links, dates, and dreams</p>
                     </div>
                 </div>
-                <div id="auth-status" class="text-sm bg-brand-800/50 px-4 py-2 rounded-full border border-brand-500/50 hidden md:block">
-                    <i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Connecting...
+                <div class="flex items-center gap-2 hidden md:flex">
+                    <div id="auth-status" class="text-sm bg-brand-800/50 px-4 py-2 rounded-full border border-brand-500/50">
+                        <i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Connecting...
+                    </div>
+                    <button onclick="sessionStorage.removeItem('isAuthenticated'); window.location.reload();" class="text-sm bg-white/10 hover:bg-white/20 px-3 py-2 rounded-full transition-colors border border-white/20" title="Lock App">
+                        <i class="fa-solid fa-lock"></i>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Two Column Layout for Desktop -->
         <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
             
             <!-- Left Column: Add Link Form -->
@@ -125,10 +131,8 @@
                 </div>
             </div>
 
-            <!-- Right Column: Dashboard (Filters & Links) -->
+            <!-- Right Column: Dashboard -->
             <div class="w-full lg:w-2/3 flex flex-col">
-                
-                <!-- Filters -->
                 <div class="mb-2">
                     <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Categories</h3>
                     <div class="flex flex-wrap gap-2" id="filter-container">
@@ -153,16 +157,13 @@
                     </div>
                 </div>
 
-                <!-- Links Grid -->
                 <div id="links-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Loading State -->
                     <div class="col-span-full py-12 flex flex-col items-center justify-center text-gray-400">
                         <i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-brand-300"></i>
                         <p>Loading your saved links...</p>
                     </div>
                 </div>
                 
-                <!-- Empty State (Hidden by default) -->
                 <div id="empty-state" class="hidden col-span-full py-16 flex flex-col items-center justify-center text-gray-500 bg-white rounded-2xl border border-dashed border-gray-300">
                     <i class="fa-solid fa-box-open text-4xl mb-3 text-gray-300"></i>
                     <p class="text-lg font-medium">No links found</p>
@@ -173,17 +174,11 @@
     </div>
 
     <!-- Edit Modal -->
-    <div class="flex justify-between items-start mb-3 gap-2">
-                            <h3 class="font-semibold text-gray-800 line-clamp-2 flex-grow" title="${link.title}">${link.title}</h3>
-                            <div class="flex gap-1 flex-shrink-0">
-                                <button class="edit-btn text-gray-400 hover:text-blue-500 transition-colors p-1" data-id="${link.id}" title="Edit link">
-                                    <i class="fa-solid fa-pen"></i>
-                                </button>
-                                <button class="delete-btn text-gray-400 hover:text-red-500 transition-colors p-1" data-id="${link.id}" title="Delete link">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </div>
-                        </div>
+    <div id="edit-modal" class="fixed inset-0 bg-gray-900/40 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-pen text-brand-500 mr-2"></i>Edit Link</h2>
+                <button type="button" onclick="document.getElementById('edit-modal').classList.replace('flex', 'hidden')" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <i class="fa-solid fa-times text-xl"></i>
                 </button>
             </div>
@@ -227,7 +222,6 @@
         </div>
     </div>
     
-    <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
 
     <script type="module">
@@ -235,21 +229,16 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Environment Variables
-        const appId = 'sk-planner';
         const firebaseConfig = {
-  apiKey: "AIzaSyCw-ld8mItyak8TSqzz_pWGJPWaVhuybtg",
-  authDomain: "sk-planner-9b1ba.firebaseapp.com",
-  projectId: "sk-planner-9b1ba",
-  storageBucket: "sk-planner-9b1ba.firebasestorage.app",
-  messagingSenderId: "83211122657",
-  appId: "1:83211122657:web:2c7429489c351b527944a0",
-  measurementId: "G-3ZT4S0J7RL"
-};
+            apiKey: "AIzaSyCw-ld8mItyak8TSqzz_pWGJPWaVhuybtg",
+            authDomain: "sk-planner-9b1ba.firebaseapp.com",
+            projectId: "sk-planner-9b1ba",
+            storageBucket: "sk-planner-9b1ba.firebasestorage.app",
+            messagingSenderId: "83211122657",
+            appId: "1:83211122657:web:2c7429489c351b527944a0",
+            measurementId: "G-3ZT4S0J7RL"
+        };
         
-        const initialToken = null;
-
-        // Initialize Firebase
         let app, db, auth;
         try {
             app = initializeApp(firebaseConfig);
@@ -260,13 +249,11 @@
             showToast("Failed to connect to database.", "error");
         }
 
-        // App State
         let currentUser = null;
         let allLinks = [];
         let currentFilter = 'All';
         let currentTagFilter = 'All';
 
-        // DOM Elements
         const authStatus = document.getElementById('auth-status');
         const form = document.getElementById('add-link-form');
         const submitBtn = document.getElementById('submit-btn');
@@ -274,7 +261,6 @@
         const emptyState = document.getElementById('empty-state');
         const filterBtns = document.querySelectorAll('.filter-btn');
 
-        // Toast Notification System
         function showToast(message, type = 'success') {
             const toastContainer = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -283,14 +269,9 @@
             const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
 
             toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 toast-enter active max-w-sm`;
-            toast.innerHTML = `
-                <i class="fa-solid ${icon}"></i>
-                <p class="text-sm font-medium">${message}</p>
-            `;
-            
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i><p class="text-sm font-medium">${message}</p>`;
             toastContainer.appendChild(toast);
             
-            // Remove after 3 seconds
             setTimeout(() => {
                 toast.classList.remove('toast-enter-active');
                 toast.classList.add('toast-exit-active');
@@ -298,7 +279,6 @@
             }, 3000);
         }
 
-        // Category Colors mapped to Tailwind classes
         const getCategoryBadge = (category) => {
             const styles = {
                 'Food': 'bg-orange-100 text-orange-800 border-orange-200',
@@ -316,24 +296,19 @@
             return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${style}">${category}</span>`;
         };
 
-        // Format Date
-        // Format Date
         const formatDate = (timestamp) => {
             if (!timestamp) return 'Just now';
             const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         };
 
-        // Render Dynamic Tag Filters
         const renderTagFilters = () => {
             const tagContainer = document.getElementById('tag-filter-container');
             if (!tagContainer) return;
             
             const allTags = new Set();
             allLinks.forEach(link => {
-                if(link.tags && Array.isArray(link.tags)) {
-                    link.tags.forEach(t => allTags.add(t));
-                }
+                if(link.tags && Array.isArray(link.tags)) link.tags.forEach(t => allTags.add(t));
             });
             const tags = Array.from(allTags).sort();
 
@@ -353,16 +328,14 @@
             document.querySelectorAll('.tag-filter-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     currentTagFilter = e.target.getAttribute('data-tag');
-                    renderTagFilters(); // re-render to update active styling
+                    renderTagFilters();
                     renderLinks();
                 });
             });
         };
 
-        // Render Links
         const renderLinks = () => {
             linksGrid.innerHTML = '';
-            
             const filteredLinks = allLinks.filter(link => {
                 const matchesCategory = currentFilter === 'All' || link.category === currentFilter;
                 const matchesTag = currentTagFilter === 'All' || (link.tags && link.tags.includes(currentTagFilter));
@@ -386,10 +359,15 @@
 
                     card.innerHTML = `
                         <div class="flex justify-between items-start mb-3 gap-2">
-                            <h3 class="font-semibold text-gray-800 line-clamp-2" title="${link.title}">${link.title}</h3>
-                            <button class="delete-btn text-gray-400 hover:text-red-500 transition-colors p-1" data-id="${link.id}" title="Delete link">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
+                            <h3 class="font-semibold text-gray-800 line-clamp-2 flex-grow" title="${link.title}">${link.title}</h3>
+                            <div class="flex gap-1 flex-shrink-0">
+                                <button class="edit-btn text-gray-400 hover:text-blue-500 transition-colors p-1" data-id="${link.id}" title="Edit link">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="delete-btn text-gray-400 hover:text-red-500 transition-colors p-1" data-id="${link.id}" title="Delete link">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="mb-2 flex flex-col items-start gap-1">
                             ${getCategoryBadge(link.category)}
@@ -406,7 +384,25 @@
                     linksGrid.appendChild(card);
                 });
 
-                // Attach delete listeners
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.currentTarget.getAttribute('data-id');
+                        const link = allLinks.find(l => l.id === id);
+                        if (link) {
+                            document.getElementById('edit-id').value = link.id;
+                            document.getElementById('edit-url').value = link.url;
+                            document.getElementById('edit-title').value = link.title;
+                            document.getElementById('edit-category').value = link.category;
+                            document.getElementById('edit-tags').value = link.tags ? link.tags.join(', ') : '';
+                            document.getElementById('edit-notes').value = link.notes || '';
+                            
+                            const modal = document.getElementById('edit-modal');
+                            modal.classList.remove('hidden');
+                            modal.classList.add('flex');
+                        }
+                    });
+                });
+
                 document.querySelectorAll('.delete-btn').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const id = e.currentTarget.getAttribute('data-id');
@@ -418,50 +414,34 @@
             }
         };
 
-        // Filter Logic
         filterBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Update active state
                 filterBtns.forEach(b => {
                     b.classList.remove('bg-brand-600', 'text-white', 'active');
                     b.classList.add('bg-white', 'text-gray-600');
                 });
                 e.target.classList.remove('bg-white', 'text-gray-600');
                 e.target.classList.add('bg-brand-600', 'text-white', 'active');
-                
                 currentFilter = e.target.getAttribute('data-filter');
                 renderLinks();
             });
         });
 
-        // Add Link Logic
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!currentUser) return;
 
-            const urlInput = document.getElementById('url').value;
-            const titleInput = document.getElementById('title').value;
-            const categoryInput = document.getElementById('category').value;
-            const tagsInputValue = document.getElementById('tags').value;
-            const notesInput = document.getElementById('notes').value;
+            let formattedUrl = document.getElementById('url').value;
+            if (!/^https?:\/\//i.test(formattedUrl)) formattedUrl = 'https://' + formattedUrl;
 
-            // Process tags: split by comma, trim, remove empty
-            const tagsArray = tagsInputValue.split(',')
-                .map(tag => tag.trim())
-                .filter(tag => tag.length > 0);
-
-            // Basic URL validation (ensure https://)
-            let formattedUrl = urlInput;
-            if (!/^https?:\/\//i.test(formattedUrl)) {
-                formattedUrl = 'https://' + formattedUrl;
-            }
+            const tagsArray = document.getElementById('tags').value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
 
             const newLinkData = {
                 url: formattedUrl,
-                title: titleInput,
-                category: categoryInput,
+                title: document.getElementById('title').value,
+                category: document.getElementById('category').value,
                 tags: tagsArray,
-                notes: notesInput,
+                notes: document.getElementById('notes').value,
                 createdAt: serverTimestamp()
             };
 
@@ -482,7 +462,40 @@
             }
         });
 
-        // Delete Link Logic
+        document.getElementById('edit-link-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+            
+            const updateBtn = document.getElementById('update-btn');
+            updateBtn.disabled = true;
+            updateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating...';
+
+            const id = document.getElementById('edit-id').value;
+            let formattedUrl = document.getElementById('edit-url').value;
+            if (!/^https?:\/\//i.test(formattedUrl)) formattedUrl = 'https://' + formattedUrl;
+
+            const tagsArray = document.getElementById('edit-tags').value
+                .split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+
+            try {
+                await updateDoc(doc(db, 'skplanner_shared_links', id), {
+                    url: formattedUrl,
+                    title: document.getElementById('edit-title').value,
+                    category: document.getElementById('edit-category').value,
+                    tags: tagsArray,
+                    notes: document.getElementById('edit-notes').value
+                });
+                showToast('Link updated successfully!');
+                document.getElementById('edit-modal').classList.replace('flex', 'hidden');
+            } catch (error) {
+                console.error("Error updating link: ", error);
+                showToast('Failed to update link.', 'error');
+            } finally {
+                updateBtn.disabled = false;
+                updateBtn.innerHTML = '<i class="fa-solid fa-save"></i> Update Link';
+            }
+        });
+
         const deleteLink = async (id) => {
             if (!currentUser) return;
             try {
@@ -494,21 +507,13 @@
             }
         };
 
-        // Authenticate and fetch data
         const initAuthAndData = async () => {
             try {
-                // Auth Rule 3: Auth before Queries
-                if (initialToken) {
-                    await signInWithCustomToken(auth, initialToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
+                await signInAnonymously(auth);
                 currentUser = auth.currentUser;
                 authStatus.innerHTML = `<i class="fa-solid fa-check-circle text-green-500 mr-1"></i> Ready`;
-                submitBtn.disabled = false; // Enable form
+                submitBtn.disabled = false; 
 
-                // Start listening to data (Rule 1 & Rule 2 applied)
                 const linksRef = collection(db, 'skplanner_shared_links');
                 
                 onSnapshot(linksRef, (snapshot) => {
@@ -517,7 +522,6 @@
                         allLinks.push({ id: doc.id, ...doc.data() });
                     });
                     
-                    // Sort in JS (Rule 2) - newest first based on createdAt
                     allLinks.sort((a, b) => {
                         const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
                         const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
@@ -531,7 +535,6 @@
                     linksGrid.innerHTML = `<div class="col-span-full py-12 text-center text-red-500">Error loading links.</div>`;
                     showToast('Error loading your data.', 'error');
                 });
-
             } catch (error) {
                 console.error("Authentication failed:", error);
                 authStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-500 mr-1"></i> Auth Error`;
@@ -539,16 +542,14 @@
             }
         };
 
-        // Start App
         if (app && auth) {
-            const VALID_PIN = "20062018"; // The requested 8-digit PIN
+            const VALID_PIN = "20062018"; 
             const pinOverlay = document.getElementById('pin-overlay');
             const mainContent = document.getElementById('main-content');
             const pinForm = document.getElementById('pin-form');
             const pinInput = document.getElementById('pin-input');
             const pinError = document.getElementById('pin-error');
             
-            // Check session storage so we don't ask for PIN on every refresh during an active session
             if (sessionStorage.getItem('isAuthenticated') === 'true') {
                 pinOverlay.classList.add('hidden');
                 mainContent.classList.remove('hidden');
@@ -564,14 +565,13 @@
                     sessionStorage.setItem('isAuthenticated', 'true');
                     pinError.classList.add('hidden');
                     
-                    // Fade out overlay
                     pinOverlay.classList.add('opacity-0');
                     setTimeout(() => {
                         pinOverlay.classList.add('hidden');
                         mainContent.classList.remove('hidden');
                         mainContent.classList.add('flex');
                         initAuthAndData();
-                    }, 300); // match transition duration
+                    }, 300); 
                 } else {
                     pinError.classList.remove('hidden');
                     pinInput.value = '';
@@ -579,7 +579,6 @@
                 }
             });
         }
-
     </script>
 </body>
 </html>
